@@ -1,0 +1,11 @@
+BasedOnStyle: Google
+IndentWidth: 4
+ColumnLimit: 80
+AlignOperands: true
+BreakBeforeBinaryOperators: All
+AllowShortBlocksOnASingleLine: Empty
+AlignArrayOfStructures: Left
+AlignConsecutiveAssignments: Consecutive
+AlignConsecutiveBitFields: Consecutive
+AlignConsecutiveMacros: Consecutive
+PointerAlignment: Right
