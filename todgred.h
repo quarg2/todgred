@@ -5,9 +5,9 @@
 #define ROWS 128
 
 #define BLANK ' '
-#define DRAW '*'
+#define FILLED '*'
 
-#define SQR(X) ((X) * (X))
+#define DRAW (mode == modeDraw) ? FILLED : BLANK
 
 // 2D char array storing the canvas
 typedef char Screen[COLS][ROWS];
@@ -23,8 +23,8 @@ typedef struct {
 } Circle;
 
 typedef struct {
-    Point upperCorner;
     Point lowerCorner;
+    Point upperCorner;
 } Rectangle;
 
 typedef struct {
@@ -42,6 +42,6 @@ void clearScreen(Screen screen);
 void printScreen(Screen screen);
 void drawCircle(Screen screen, Circle circle, Mode mode);
 void drawRectangle(Screen screen, Rectangle rect, Mode mode);
-void drawLine(Screen screen, Line line, Mode mde);
+void drawLine(Screen screen, Line line, Mode mode);
 
 #endif
