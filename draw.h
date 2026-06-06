@@ -21,7 +21,14 @@
 
 #define EQUAL2(lhs, rhs1, rhs2) ((lhs) == (rhs1) || (lhs) == (rhs2))
 
-#define DRAW (mode == modeDraw) ? FILLED : BLANK
+#define DRAW (mode == MODE_DRAW) ? FILLED : BLANK
+
+// Macros that buffer the shapes.
+// Use these instead of explicit buffer to hide implementation details
+#define DRAW_CIRCLE(circle, mode)     bufferShape(circle, mode)
+#define DRAW_LINE(line, mode)         bufferShape(line, mode)
+#define DRAW_RECTANGLE(rect, mode)    bufferShape(rect, mode)
+#define DRAW_TRIANGLE(triangle, mode) bufferShape(triangle, mode)
 
 // 2D char array storing the canvas
 typedef char Screen[COLS][ROWS];
@@ -53,33 +60,55 @@ typedef struct {
 } Triangle;
 
 typedef enum {
-    shapeTypeCircle,
-    shapeTypeRect,
-    shapeTypeLine,
-    shapeTypeTriangle,
+    SHAPETYPE_NULL,  // Null shape used as sentinel
+    SHAPETYPE_CIRCLE,
+    SHAPETYPE_RECTANGLE,
+    SHAPETYPE_LINE,
+    SHAPETYPE_TRIANGLE,
 } ShapeType;
 
 typedef enum {
-    modeDraw,
-    modeErase,
+    MODE_DRAW,
+    MODE_ERASE,
 } Mode;
 
+// A struct that stores a tagged union with the shape and the mode
 typedef struct {
     ShapeType type;
     union {
         Circle circle;
-        Rectangle rect;
         Line line;
+        Rectangle rect;
+        Triangle triangle;
     } as;
+    Mode mode;
 } Shape;
+
+// Functions to convert the various shapes into a Shape
+#define SHAPE_AS_NULL \
+    (Shape) { .type = SHAPETYPE_NULL, .as = {{0}}, .mode = BLANK }
+#define SHAPE_AS_CIRCLE(circle, mode) \
+    (Shape) { .type = SHAPETYPE_CIRCLE, .as = {.circle = circle}, .mode = mode }
+#define SHAPE_AS_LINE(line, mode) \
+    (Shape) { .type = SHAPETYPE_LINE, .as = {.line = line}, .mode = mode }
+#define SHAPE_AS_RECT(rect, mode) \
+    (Shape) { .type = SHAPETYPE_RECTANGLE, .as = {.rect = rect}, .mode = mode }
+#define SHAPE_AS_TRIANGLE(triangle, mode)                                      \
+    (Shape) {                                                                  \
+        .type = SHAPETYPE_TRIANGLE, .as = {.triangle = triangle}, .mode = mode \
+    }
+
+// Check what a Shape is
+#define IS_SHAPE_NULL(shape)     ((shape).type == SHAPETYPE_NULL)
+#define IS_SHAPE_CIRCLE(shape)   ((shape).type == SHAPETYPE_CIRCLE)
+#define IS_SHAPE_LINE(shape)     ((shape).type == SHAPETYPE_LINE)
+#define IS_SHAPE_RECT(shape)     ((shape).type == SHAPETYPE_RECT)
+#define IS_SHAPE_TRIANGLE(shape) ((shape).type == SHAPETYPE_TRIANGLE)
 
 void initScreen(Screen screen);
 void clearScreen(Screen screen);
 void printScreen(Screen screen);
 
-void bufferCircle(Screen screen, Circle circle, Mode mode);
-void bufferLine(Screen screen, Line line, Mode mode);
-void bufferRectangle(Screen screen, Rectangle rect, Mode mode);
-void bufferTriangle(Screen screen, Triangle triangle, Mode mode);
+void bufferShape(Shape shape);
 
 #endif

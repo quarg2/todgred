@@ -1,5 +1,5 @@
 CC = cc
-CFLAGS = -lm # -Wall -Wextra -pedantic -std=c11 -lm
+CFLAGS = -lm -Wall -Wextra -pedantic -std=c11 -lm
 
 all: todgred
 

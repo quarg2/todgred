@@ -5,7 +5,6 @@
 
 int main(void) {
     Screen screen;
-    Shape shapeBuffer[BUFSIZE];
 
     initScreen(screen);
 
@@ -14,6 +13,18 @@ int main(void) {
         Choice choice = getChoice();
 
         switch (choice) {
+            case choiceDraw:
+                break;
+            case choiceDisplay:
+                break;
+            case choiceClear:
+                break;
+            case choiceModify:
+                break;
+            case choiceExit:
+                break;
+            case choiceHelp:
+                break;
             default:  // Unreachable
                 break;
         }

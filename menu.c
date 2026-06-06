@@ -13,7 +13,7 @@ void menu(void) {
 
 Choice getChoice(void) {
 #define MAXLINE 100
-    char s[1000];
+    char s[MAXLINE];
     getLine(s, MAXLINE);
     int choice = parseInt(s);
 
