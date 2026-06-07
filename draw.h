@@ -4,19 +4,18 @@
 #include <math.h>
 #include <stdbool.h>
 
+// Height and width of the screen
 #define COLS 128
 #define ROWS 128
 
+// Character used to draw blank spaces on the screen
 #ifndef BLANK
 #define BLANK '_'
 #endif
 
+// Character used to draw a filled space on the screen
 #ifndef FILLED
 #define FILLED '*'
-#endif
-
-#ifndef BUFSIZE
-#define BUFSIZE 10
 #endif
 
 #define EQUAL2(lhs, rhs1, rhs2) ((lhs) == (rhs1) || (lhs) == (rhs2))
@@ -31,6 +30,7 @@
 #define DRAW_TRIANGLE(triangle, mode) bufferShape(triangle, mode)
 
 // 2D char array storing the canvas
+// Stored as [COLS][ROWS] since C uses a column major format
 typedef char Screen[COLS][ROWS];
 
 typedef struct {
@@ -59,6 +59,13 @@ typedef struct {
     Point corner3;
 } Triangle;
 
+// Mode in which the shape is to be drawn
+typedef enum {
+    MODE_DRAW,   // Draws with DRAW character
+    MODE_ERASE,  // Draws with BLANK character (draw with negative space)
+} Mode;
+
+// Tag for Shape
 typedef enum {
     SHAPETYPE_NULL,  // Null shape used as sentinel
     SHAPETYPE_CIRCLE,
@@ -66,11 +73,6 @@ typedef enum {
     SHAPETYPE_LINE,
     SHAPETYPE_TRIANGLE,
 } ShapeType;
-
-typedef enum {
-    MODE_DRAW,
-    MODE_ERASE,
-} Mode;
 
 // A struct that stores a tagged union with the shape and the mode
 typedef struct {
@@ -98,7 +100,7 @@ typedef struct {
         .type = SHAPETYPE_TRIANGLE, .as = {.triangle = triangle}, .mode = mode \
     }
 
-// Check what a Shape is
+// Macros to check what shape a Shape is
 #define IS_SHAPE_NULL(shape)     ((shape).type == SHAPETYPE_NULL)
 #define IS_SHAPE_CIRCLE(shape)   ((shape).type == SHAPETYPE_CIRCLE)
 #define IS_SHAPE_LINE(shape)     ((shape).type == SHAPETYPE_LINE)

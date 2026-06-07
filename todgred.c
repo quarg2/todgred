@@ -13,11 +13,11 @@ int main(void) {
         Choice choice = getChoice();
 
         switch (choice) {
-            case choiceDraw:
+            case CHOICE_DRAW:
                 break;
-            case choiceDisplay:
+            case CHOICE_DISPLAY:
                 break;
-            case choiceClear:
+            case CHOICE_CLEAR:
                 break;
             case choiceModify:
                 break;

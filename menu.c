@@ -2,6 +2,7 @@
 
 #include "input.h"
 
+// Print the menu
 void menu(void) {
     printf("1. Draw shape\n");
     printf("2. Display drawing\n");
@@ -11,6 +12,9 @@ void menu(void) {
     printf("Enter choice [0-6] (0 to exit): ");
 }
 
+// Get user input and then print the output
+// Returns the choice entered by the user
+// If the input is invalid, returns CHOICE_ERR
 Choice getChoice(void) {
 #define MAXLINE 100
     char s[MAXLINE];
@@ -19,19 +23,19 @@ Choice getChoice(void) {
 
     switch (choice) {
         case 0:
-            return choiceExit;
+            return CHOICE_EXIT;
         case 1:
-            return choiceDraw;
+            return CHOICE_DRAW;
         case 2:
-            return choiceDisplay;
+            return CHOICE_DISPLAY;
         case 3:
-            return choiceModify;
+            return CHOICE_MODIFY;
         case 4:
-            return choiceClear;
+            return CHOICE_CLEAR;
         case 5:
-            return choiceHelp;
+            return CHOICE_HELP;
         default:
-            return -1;
+            return CHOICE_ERR;
     }
 
 #undef MAXLINE

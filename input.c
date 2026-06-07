@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <stdio.h>
 
+// Reads a line of maximum length lim from stdin
 int getLine(char *s, int lim) {
     int c, i;
 
@@ -17,6 +18,9 @@ int getLine(char *s, int lim) {
     return i;
 }
 
+// Converts string to int
+// Returns the int read from the string
+// Returns zero on error
 int parseInt(char *s) {
     int val, i;
 
