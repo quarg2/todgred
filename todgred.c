@@ -3,32 +3,47 @@
 #include "draw.h"
 #include "menu.h"
 
+Screen screen;
+ShapeBuffer shapeBuffer;
+
 int main(void) {
-    Screen screen;
+    shapeBuffer = initShapeBuffer();
 
     initScreen(screen);
 
     while (true) {
-        menu();
+        mainMenu();
         Choice choice = getChoice();
 
+    choice:
         switch (choice) {
             case CHOICE_DRAW:
+                drawMenu(&shapeBuffer);
                 break;
             case CHOICE_DISPLAY:
+                printScreen(screen, &shapeBuffer);
                 break;
             case CHOICE_CLEAR:
+                clearScreen(screen, &shapeBuffer);
                 break;
-            case choiceModify:
+            case CHOICE_MODIFY:
+                // modifyMenu();
                 break;
-            case choiceExit:
+            case CHOICE_EXIT:
+                goto exitLoop;
                 break;
-            case choiceHelp:
+            case CHOICE_ERR:
+                printf("Enter valid choice!\n");
                 break;
             default:  // Unreachable
+                printf("Invalid choice\n");
+                goto choice;
                 break;
         }
     }
+exitLoop:
+
+    freeShapeBuffer(&shapeBuffer);
 
     return 0;
 }

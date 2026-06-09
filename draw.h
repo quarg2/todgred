@@ -22,16 +22,8 @@
 
 #define DRAW (mode == MODE_DRAW) ? FILLED : BLANK
 
-// Macros that buffer the shapes.
-// Use these instead of explicit buffer to hide implementation details
-#define DRAW_CIRCLE(circle, mode)     bufferShape(circle, mode)
-#define DRAW_LINE(line, mode)         bufferShape(line, mode)
-#define DRAW_RECTANGLE(rect, mode)    bufferShape(rect, mode)
-#define DRAW_TRIANGLE(triangle, mode) bufferShape(triangle, mode)
-
 // 2D char array storing the canvas
-// Stored as [COLS][ROWS] since C uses a column major format
-typedef char Screen[COLS][ROWS];
+typedef char Screen[ROWS][COLS];
 
 typedef struct {
     int x;
@@ -86,6 +78,13 @@ typedef struct {
     Mode mode;
 } Shape;
 
+// A vector storing buffered shapes
+typedef struct {
+    int count;
+    int quantity;
+    Shape *shapes;
+} ShapeBuffer;
+
 // Functions to convert the various shapes into a Shape
 #define SHAPE_AS_NULL \
     (Shape) { .type = SHAPETYPE_NULL, .as = {{0}}, .mode = BLANK }
@@ -108,9 +107,14 @@ typedef struct {
 #define IS_SHAPE_TRIANGLE(shape) ((shape).type == SHAPETYPE_TRIANGLE)
 
 void initScreen(Screen screen);
-void clearScreen(Screen screen);
-void printScreen(Screen screen);
+void clearScreen(Screen screen, ShapeBuffer *shapeBuffer);
+void printScreen(Screen screen, ShapeBuffer *shapeBuffer);
 
-void bufferShape(Shape shape);
+void bufferShape(Shape shape, ShapeBuffer *shapeBuffer);
+
+ShapeBuffer initShapeBuffer(void);
+void addShapeToShapeBuffer(ShapeBuffer *buffer, Shape shape);
+void removeShapeFromShapeBuffer(ShapeBuffer *buffer, int index);
+void freeShapeBuffer(ShapeBuffer *buffer);
 
 #endif

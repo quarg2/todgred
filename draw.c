@@ -3,21 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// A vecotr storing the buffered shapes
-typedef struct {
-    int count;
-    int quantity;
-    Shape *shapes;
-} ShapeBuffer;
-
-static ShapeBuffer initShapeBuffer(void);
-static void addShapeToShapeBuffer(ShapeBuffer *buffer, Shape shape);
-static void removeShapeFromShapeBuffer(ShapeBuffer *buffer, int index);
-static void freeShapeBuffer(ShapeBuffer *buffer);
-
 static int drawShapes(Screen screen, ShapeBuffer *buffer);
-
-static ShapeBuffer shapeBuffer = {0, 0, NULL};
 
 // Returns larger of a, b
 static int max(int a, int b) { return (a > b) ? a : b; }
@@ -38,43 +24,49 @@ static bool isBetween(int val, int lower, int upper) {
 // Initialises screen
 // Draws BLANK everywhere
 void initScreen(Screen screen) {
-    for (int y = 0; y < COLS; y++) {
-        for (int x = 0; x < ROWS; x++) {
-            screen[y][x] = BLANK;
+    for (int x = 0; x < ROWS; x++) {
+        for (int y = 0; y < COLS; y++) {
+            screen[x][y] = BLANK;
         }
     }
 }
 
 // Clears a screen by drawing with BLANK
-void clearScreen(Screen screen) { initScreen(screen); }
+// Also clear shape buffer
+void clearScreen(Screen screen, ShapeBuffer *shapeBuffer) {
+    initScreen(screen);
+    freeShapeBuffer(shapeBuffer);
+}
 
 // Prints screen to stdout
 // This function clears the buffer and modifications are made to screen.
 // Drawing shapes DOES NOT modify screen until this function is called
 // Prints row and column numbers if DEBUG is defined
-void printScreen(Screen screen) {
+void printScreen(Screen screen, ShapeBuffer *shapeBuffer) {    
 #ifdef DEBUG
     // prints column number
-    printf(" ");
+    printf("   ");
     for (int i = 0; i < COLS; i++) {
         printf("%d", (i / 10) % 10);
     }
-    printf("\n ");
+    printf("\n   ");
     for (int i = 0; i < COLS; i++) {
         printf("%d", i % 10);
     }
     printf("\n");
+    printf("\n");
 #endif
 
-    drawShapes(screen, &shapeBuffer);
-    
-    for (int y = 0; y < COLS; y++) {
+    // Draw shapes to screen from the buffer
+    drawShapes(screen, shapeBuffer);
+
+    for (int x = 0; x < ROWS; x++) {
 #ifdef DEBUG
         // Prints row number
-        printf("%d", y % 10);
+        printf("%02d ", x % 100);
 #endif
-        for (int x = 0; x < ROWS; x++) {
-            putchar(screen[y][x]);
+        for (int y = 0; y < COLS; y++) {
+            putchar(screen[x][y]);
         }
         putchar('\n');
     }
@@ -82,11 +74,11 @@ void printScreen(Screen screen) {
 
 // Draws a circle to screen
 static void drawCircle(Screen screen, Circle circle, Mode mode) {
-    for (int y = 0; y < COLS; y++) {
-        for (int x = 0; x < ROWS; x++) {
+    for (int x = 0; x < ROWS; x++) {
+        for (int y = 0; y < COLS; y++) {
             if (pow(circle.radius, 2)
                 == pow(x - circle.centre.x, 2) + pow(y - circle.centre.y, 2)) {
-                screen[y][x] = DRAW;
+                screen[x][y] = DRAW;
             }
         }
     }
@@ -94,13 +86,13 @@ static void drawCircle(Screen screen, Circle circle, Mode mode) {
 
 // Draws a line to screen
 static void drawLine(Screen screen, Line line, Mode mode) {
-    for (int y = 0; y < COLS; y++) {
-        for (int x = 0; x < ROWS; x++) {
+    for (int x = 0; x < ROWS; x++) {
+        for (int y = 0; y < COLS; y++) {
             if (isBetweenEq(x, line.start.x, line.end.x)
                 && isBetweenEq(y, line.start.y, line.end.y)) {
                 if ((y - line.start.y) * (line.end.x - line.start.x)
                     == (line.end.y - line.start.y) * (x - line.start.x)) {
-                    screen[y][x] = DRAW;
+                    screen[x][y] = DRAW;
                 }
             }
         }
@@ -109,14 +101,14 @@ static void drawLine(Screen screen, Line line, Mode mode) {
 
 // Draws a rectangle to screen
 static void drawRectangle(Screen screen, Rectangle rect, Mode mode) {
-    for (int x = 0; x < COLS; x++) {
-        for (int y = 0; y < ROWS; y++) {
+    for (int x = 0; x < ROWS; x++) {
+        for (int y = 0; y < COLS; y++) {
             if ((EQUAL2(x, rect.lowerCorner.x, rect.upperCorner.x)
                  && isBetweenEq(y, rect.lowerCorner.y, rect.upperCorner.y))
                 || (EQUAL2(y, rect.lowerCorner.y, rect.upperCorner.y)
                     && isBetweenEq(x, rect.lowerCorner.x,
                                    rect.upperCorner.x))) {
-                screen[y][x] = DRAW;
+                screen[x][y] = DRAW;
             }
         }
     }
@@ -171,22 +163,22 @@ static int drawShapes(Screen screen, ShapeBuffer *buffer) {
 }
 
 // Adds shapes to the shape buffer
-void bufferShape(Shape shape) {
+void bufferShape(Shape shape, ShapeBuffer *shapeBuffer) {
     switch (shape.type) {
         case SHAPETYPE_NULL:
             // The null shape isn't drawn
             break;
         case SHAPETYPE_CIRCLE:
-            addShapeToShapeBuffer(&shapeBuffer, shape);
+            addShapeToShapeBuffer(shapeBuffer, shape);
             break;
         case SHAPETYPE_LINE:
-            addShapeToShapeBuffer(&shapeBuffer, shape);
+            addShapeToShapeBuffer(shapeBuffer, shape);
             break;
         case SHAPETYPE_RECTANGLE:
-            addShapeToShapeBuffer(&shapeBuffer, shape);
+            addShapeToShapeBuffer(shapeBuffer, shape);
             break;
         case SHAPETYPE_TRIANGLE:
-            addShapeToShapeBuffer(&shapeBuffer, shape);
+            addShapeToShapeBuffer(shapeBuffer, shape);
             break;
         default:  // Unreachable
             break;
@@ -194,11 +186,14 @@ void bufferShape(Shape shape) {
 }
 
 // Initialises ShapeBuffer
-static ShapeBuffer initShapeBuffer(void) { return (ShapeBuffer){0, 0, NULL}; }
+ShapeBuffer initShapeBuffer(void) { return (ShapeBuffer){0, 0, NULL}; }
 
 // Adds shape to ShapeBuffer
-static void addShapeToShapeBuffer(ShapeBuffer *buffer, Shape shape) {
+void addShapeToShapeBuffer(ShapeBuffer *buffer, Shape shape) {
     if (buffer->count >= buffer->quantity) {
+        if (buffer->count == 0) {
+            buffer->count = 1;
+        }
         buffer->shapes = (Shape *)realloc(buffer->shapes,
                                           sizeof(Shape) * buffer->count * 2);
         buffer->count *= 2;
@@ -208,7 +203,7 @@ static void addShapeToShapeBuffer(ShapeBuffer *buffer, Shape shape) {
 
 // Removes a shape from ShapeBuffer by setting the type field of Shape to
 // SHAPETYPE_NULL
-static void removeShapeFromShapeBuffer(ShapeBuffer *buffer, int index) {
+void removeShapeFromShapeBuffer(ShapeBuffer *buffer, int index) {
     if (index > buffer->count) {
         return;
     }
@@ -216,7 +211,7 @@ static void removeShapeFromShapeBuffer(ShapeBuffer *buffer, int index) {
 }
 
 // Frees memory used by shape buffer
-static void freeShapeBuffer(ShapeBuffer *buffer) {
+void freeShapeBuffer(ShapeBuffer *buffer) {
     free(buffer->shapes);
     *buffer = initShapeBuffer();
 }

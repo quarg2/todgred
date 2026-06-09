@@ -1,7 +1,7 @@
 #ifndef todgred_menu_h
 #define todgred_menu_h
 
-#include "todgred.h"
+#include "draw.h"
 
 // Choices in the menu
 typedef enum {
@@ -10,11 +10,15 @@ typedef enum {
     CHOICE_CLEAR,
     CHOICE_MODIFY,
     CHOICE_EXIT,
-    CHOICE_HELP,
     CHOICE_ERR,
 } Choice;
 
-void menu(void);
+void mainMenu(void);
+void drawMenu(ShapeBuffer *shapeBuffer);
+void modifyMenu(void);
 Choice getChoice(void);
+
+int getLine(char *s, int lim);
+int parseInt(char *s);
 
 #endif
