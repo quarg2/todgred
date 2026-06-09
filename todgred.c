@@ -27,7 +27,7 @@ int main(void) {
                 clearScreen(screen, &shapeBuffer);
                 break;
             case CHOICE_MODIFY:
-                // modifyMenu();
+                modifyMenu(&shapeBuffer);
                 break;
             case CHOICE_EXIT:
                 goto exitLoop;

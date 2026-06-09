@@ -57,6 +57,13 @@ typedef enum {
     MODE_ERASE,  // Draws with BLANK character (draw with negative space)
 } Mode;
 
+// Flags for how a shape in the shape buffer should be modified
+typedef enum {
+    MODIFY_COORDINATES,
+    MODIFY_MODE,
+    MODIFY_DELETE,
+} Modify;
+
 // Tag for Shape
 typedef enum {
     SHAPETYPE_NULL,  // Null shape used as sentinel

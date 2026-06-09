@@ -4,7 +4,15 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "draw.h"
+
 static Shape getShape(ShapeType shape, Mode mode);
+static void modifyShape(int index, ShapeBuffer *shapeBuffer, Modify modify);
+
+static Circle getShapeCircle(void);
+static Line getShapeLine(void);
+static Rectangle getShapeRectangle(void);
+static Triangle getShapeTriangle(void);
 
 // Print the menu
 void mainMenu(void) {
@@ -109,15 +117,21 @@ mode:
 }
 
 // Print menu to modify things
-void modifyMenu(/*ShapeBuffer shapeBuffer*/) {
+void modifyMenu(ShapeBuffer *shapeBuffer) {
 #define MAXLINE 1000
-    extern ShapeBuffer shapeBuffer;
     char shape[100];
     char inp[MAXLINE];
     int idx;
+    int verdict;
 
-    for (int i = 0; i < shapeBuffer.count; i++) {
-        switch (shapeBuffer.shapes[i].type) {
+    if (shapeBuffer == 0) {
+        printf("No shapes buffered to be modified.\n");
+
+        return;
+    }
+
+    for (int i = 0; i < shapeBuffer->quantity; i++) {
+        switch (shapeBuffer->shapes[i].type) {
             case SHAPETYPE_NULL:
                 continue;
                 break;
@@ -137,19 +151,104 @@ void modifyMenu(/*ShapeBuffer shapeBuffer*/) {
                 break;
         }
 
-        printf("%d %s\n", i, shape);
+        printf("\t%d %s\n", i + 1, shape);
     }
 
     printf("Enter index of shape to be modified: [0-%d] (0 to abort): ",
-           shapeBuffer.quantity);
+           shapeBuffer->quantity);
     getLine(inp, MAXLINE);
     idx = parseInt(inp);
 
-    printf("What should happen to the shape?:");
+    if (idx == 0) {
+        return;
+    }
+
+verdict:
+    printf("What should happen to the shape?:\n");
     printf("\t1. Modify coordinates\n");
     printf("\t2. Change drawing mode\n");
     printf("\t3. Delete shape\n");
+    printf("Enter choice: [0-3] (0 to abort): ");
 
+    getLine(inp, MAXLINE);
+    verdict = parseInt(inp);
+
+    switch (verdict) {
+        case 0:
+            return;
+        case 1:
+            modifyShape(idx - 1, shapeBuffer, MODIFY_COORDINATES);
+            return;
+        case 2:
+            modifyShape(idx - 1, shapeBuffer, MODIFY_MODE);
+            return;
+        case 3:
+            modifyShape(idx - 1, shapeBuffer, MODIFY_DELETE);
+            return;
+        default:
+            printf("Invalid choice\n");
+            goto verdict;
+    }
+
+#undef MAXLINE
+}
+
+static void modifyShape(int index, ShapeBuffer *shapeBuffer, Modify modify) {
+#define MAXLINE 1000
+    char buf[MAXLINE];
+
+    switch (modify) {
+        case MODIFY_COORDINATES: {
+            switch (shapeBuffer->shapes[index].type) {
+                case SHAPETYPE_CIRCLE: {
+                    Circle circle                        = getShapeCircle();
+                    shapeBuffer->shapes[index].as.circle = circle;
+                } break;
+                case SHAPETYPE_LINE: {
+                    Line line                          = getShapeLine();
+                    shapeBuffer->shapes[index].as.line = line;
+                } break;
+                case SHAPETYPE_RECTANGLE: {
+                    Rectangle rect                     = getShapeRectangle();
+                    shapeBuffer->shapes[index].as.rect = rect;
+                } break;
+                case SHAPETYPE_TRIANGLE: {
+                    Triangle triangle                      = getShapeTriangle();
+                    shapeBuffer->shapes[index].as.triangle = triangle;
+                } break;
+                default:  // Unreachable
+                    break;
+            }
+        } break;
+        case MODIFY_MODE: {
+            Mode mode;
+        mode:
+            printf("Modes:\n\t1. Draw\n\t2. Negative\n");
+            printf("Enter mode to be changed to [0-2] (0 to abort): ");
+            getLine(buf, MAXLINE);
+            switch (parseInt(buf)) {
+                case 0:
+                    return;
+                case 1:
+                    mode = MODE_DRAW;
+                    break;
+                case 2:
+                    mode = MODE_ERASE;
+                    break;
+                default:
+                    goto mode;
+                    break;
+            }
+
+            shapeBuffer->shapes[index].mode = mode;
+
+        } break;
+        case MODIFY_DELETE:
+            shapeBuffer->shapes[index] = SHAPE_AS_NULL;
+            break;
+        default:
+            break;
+    }
 #undef MAXLINE
 }
 
@@ -186,101 +285,131 @@ int parseInt(char *s) {
 }
 
 static Shape getShape(ShapeType shapeType, Mode mode) {
-#define MAXLINE 100
-    char buffer[MAXLINE];
     switch (shapeType) {
         case SHAPETYPE_NULL:  // Unreachable, probably
             return SHAPE_AS_NULL;
         case SHAPETYPE_CIRCLE: {
-            Circle circle;
-
-            printf("Enter radius: ");
-            getLine(buffer, MAXLINE);
-            circle.radius = parseInt(buffer);
-
-            printf("Enter x-coordinate of centre: ");
-            getLine(buffer, MAXLINE);
-            circle.centre.x = parseInt(buffer);
-
-            printf("Enter y-coordinate of centre: ");
-            getLine(buffer, MAXLINE);
-            circle.centre.y = parseInt(buffer);
-
+            Circle circle = getShapeCircle();
             return SHAPE_AS_CIRCLE(circle, mode);
         }
         case SHAPETYPE_LINE: {
-            Line line;
-
-            printf("Enter x-coordinate of start position: ");
-            getLine(buffer, MAXLINE);
-            line.start.x = parseInt(buffer);
-
-            printf("Enter y-coordinate of start position: ");
-            getLine(buffer, MAXLINE);
-            line.start.y = parseInt(buffer);
-
-            printf("Enter x-coordinate of end position: ");
-            getLine(buffer, MAXLINE);
-            line.end.x = parseInt(buffer);
-
-            printf("Enter y-coordinate of end position: ");
-            line.end.y = parseInt(buffer);
-
+            Line line = getShapeLine();
             return SHAPE_AS_LINE(line, mode);
         }
         case SHAPETYPE_RECTANGLE: {
-            Rectangle rect;
-
-            printf("Enter x-coordinate of corner 1: ");
-            getLine(buffer, MAXLINE);
-            rect.lowerCorner.x = parseInt(buffer);
-
-            printf("Enter y-coordinate of corner 1: ");
-            getLine(buffer, MAXLINE);
-            rect.lowerCorner.y = parseInt(buffer);
-
-            printf("Enter x-coordinate of corner 2: ");
-            getLine(buffer, MAXLINE);
-            rect.upperCorner.x = parseInt(buffer);
-
-            printf("Enter y-coordinate of corner 2: ");
-            getLine(buffer, MAXLINE);
-            rect.upperCorner.y = parseInt(buffer);
-
+            Rectangle rect = getShapeRectangle();
             return SHAPE_AS_RECT(rect, mode);
         }
         case SHAPETYPE_TRIANGLE: {
-            Triangle triangle;
-
-            printf("Enter x-coordinate of corner 1: ");
-            getLine(buffer, MAXLINE);
-            triangle.corner1.x = parseInt(buffer);
-
-            printf("Enter y-coordinate of corner 1: ");
-            getLine(buffer, MAXLINE);
-            triangle.corner1.y = parseInt(buffer);
-
-            printf("Enter x-coordinate of corner 2: ");
-            getLine(buffer, MAXLINE);
-            triangle.corner2.x = parseInt(buffer);
-
-            printf("Enter y-coordinate of corner 2: ");
-            getLine(buffer, MAXLINE);
-            triangle.corner2.y = parseInt(buffer);
-
-            printf("Enter x-coordinate of corner 3: ");
-            getLine(buffer, MAXLINE);
-            triangle.corner3.x = parseInt(buffer);
-
-            printf("Enter y-coordinate of corner 3: ");
-            getLine(buffer, MAXLINE);
-            triangle.corner3.y = parseInt(buffer);
-
+            Triangle triangle = getShapeTriangle();
             return SHAPE_AS_TRIANGLE(triangle, mode);
         }
         default:  // Unreachable
             return SHAPE_AS_NULL;
             break;
     }
+}
+
+static Circle getShapeCircle(void) {
+#define MAXLINE 100
+    char buffer[MAXLINE];
+    Circle circle;
+
+    printf("Enter radius: ");
+    getLine(buffer, MAXLINE);
+    circle.radius = parseInt(buffer);
+
+    printf("Enter x-coordinate of centre: ");
+    getLine(buffer, MAXLINE);
+    circle.centre.x = parseInt(buffer);
+
+    printf("Enter y-coordinate of centre: ");
+    getLine(buffer, MAXLINE);
+    circle.centre.y = parseInt(buffer);
+
+    return circle;
+#undef MAXLINE
+}
+
+static Line getShapeLine(void) {
+#define MAXLINE 100
+    char buffer[MAXLINE];
+    Line line;
+
+    printf("Enter x-coordinate of start position: ");
+    getLine(buffer, MAXLINE);
+    line.start.x = parseInt(buffer);
+
+    printf("Enter y-coordinate of start position: ");
+    getLine(buffer, MAXLINE);
+    line.start.y = parseInt(buffer);
+
+    printf("Enter x-coordinate of end position: ");
+    getLine(buffer, MAXLINE);
+    line.end.x = parseInt(buffer);
+
+    printf("Enter y-coordinate of end position: ");
+    getLine(buffer, MAXLINE);
+    line.end.y = parseInt(buffer);
+
+    return line;
+#undef MAXLINE
+}
+
+static Rectangle getShapeRectangle(void) {
+#define MAXLINE 100
+    char buffer[MAXLINE];
+    Rectangle rect;
+
+    printf("Enter x-coordinate of corner 1: ");
+    getLine(buffer, MAXLINE);
+    rect.lowerCorner.x = parseInt(buffer);
+
+    printf("Enter y-coordinate of corner 1: ");
+    getLine(buffer, MAXLINE);
+    rect.lowerCorner.y = parseInt(buffer);
+
+    printf("Enter x-coordinate of corner 2: ");
+    getLine(buffer, MAXLINE);
+    rect.upperCorner.x = parseInt(buffer);
+
+    printf("Enter y-coordinate of corner 2: ");
+    getLine(buffer, MAXLINE);
+    rect.upperCorner.y = parseInt(buffer);
+
+    return rect;
+#undef MAXLINE
+}
+
+static Triangle getShapeTriangle(void) {
+#define MAXLINE 100
+    char buffer[MAXLINE];
+    Triangle triangle;
+
+    printf("Enter x-coordinate of corner 1: ");
+    getLine(buffer, MAXLINE);
+    triangle.corner1.x = parseInt(buffer);
+
+    printf("Enter y-coordinate of corner 1: ");
+    getLine(buffer, MAXLINE);
+    triangle.corner1.y = parseInt(buffer);
+
+    printf("Enter x-coordinate of corner 2: ");
+    getLine(buffer, MAXLINE);
+    triangle.corner2.x = parseInt(buffer);
+
+    printf("Enter y-coordinate of corner 2: ");
+    getLine(buffer, MAXLINE);
+    triangle.corner2.y = parseInt(buffer);
+
+    printf("Enter x-coordinate of corner 3: ");
+    getLine(buffer, MAXLINE);
+    triangle.corner3.x = parseInt(buffer);
+
+    printf("Enter y-coordinate of corner 3: ");
+    getLine(buffer, MAXLINE);
+    triangle.corner3.y = parseInt(buffer);
+
+    return triangle;
 #undef MAXLINE
 }

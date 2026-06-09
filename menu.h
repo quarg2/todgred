@@ -15,7 +15,7 @@ typedef enum {
 
 void mainMenu(void);
 void drawMenu(ShapeBuffer *shapeBuffer);
-void modifyMenu(void);
+void modifyMenu(ShapeBuffer *shapeBuffer);
 Choice getChoice(void);
 
 int getLine(char *s, int lim);
