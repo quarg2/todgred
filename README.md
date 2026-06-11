@@ -17,3 +17,6 @@ cc -lm -o todgred draw.c input.c menu.c todgred.c
 ```
 
 The project is most probably ISO C11 compliant and compiler agnostic.
+
+## AI use disclosure
+No AI/generative AI/LLM output was used in the making of this project
